@@ -27,6 +27,7 @@ import org.apache.commons.logging.LogFactory;
 import org.apache.commons.vfs2.*;
 import org.apache.commons.vfs2.impl.StandardFileSystemManager;
 import org.apache.synapse.MessageContext;
+import org.wso2.carbon.connector.core.util.ConnectorUtils;
 
 import java.io.*;
 import java.util.zip.ZipEntry;
@@ -50,8 +51,18 @@ public class FileUnzipUtil {
         try {
             sourceManager = FileConnectorUtils.getManager();
             destinationManager = FileConnectorUtils.getManager();
-            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, sourceManager);
-            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destDirectory, destinationManager);
+            String sourceSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITIES);
+            String sourceSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITY_PASSPHRASE);
+            String targetSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITIES);
+            String targetSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, sourceManager,
+                    sourceSftpIdentities, sourceSftpIdentityPassphrase);
+            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destDirectory,
+                    destinationManager, targetSftpIdentities, targetSftpIdentityPassphrase);
 
             // Create remote object
             FileObject remoteFile = sourceManager.resolveFile(source, sourceFso);

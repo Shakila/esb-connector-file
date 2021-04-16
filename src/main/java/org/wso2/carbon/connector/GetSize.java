@@ -52,7 +52,12 @@ public class GetSize extends AbstractConnector implements Connector {
         StandardFileSystemManager manager = null;
         try {
             manager = FileConnectorUtils.getManager();
-            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, fileLocation, manager);
+            String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITIES);
+            String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, fileLocation, manager, sftpIdentities,
+                    sftpIdentityPassphrase);
             fileObj = manager.resolveFile(fileLocation, fso);
             if (!fileObj.exists() || fileObj.getType() != FileType.FILE) {
                 handleException("File does not exists, or source is not a file in the location:" + fileLocation, messageContext);

@@ -56,7 +56,12 @@ public class FileListZip extends AbstractConnector implements Connector {
         StandardFileSystemManager manager = null;
         try {
             manager = FileConnectorUtils.getManager();
-            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, source, manager);
+            String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITIES);
+            String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, source, manager, sftpIdentities,
+                    sftpIdentityPassphrase);
             ResultPayloadCreate resultPayload = new ResultPayloadCreate();
 
             // Create remote object

@@ -55,8 +55,14 @@ public class FileDelete extends AbstractConnector implements Connector {
         }
 
         StandardFileSystemManager manager = FileConnectorUtils.getManager();
-        FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager);
-        boolean resultStatus = deleteFile(source, sourceFso, includeSubDirectories, manager, messageContext);
+        String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                FileConstants.SFTP_IDENTITIES);
+        String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                FileConstants.SFTP_IDENTITY_PASSPHRASE);
+        FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager, sftpIdentities,
+                sftpIdentityPassphrase);
+        boolean resultStatus = deleteFile(source, sourceFso, includeSubDirectories, manager, messageContext,
+                sftpIdentities, sftpIdentityPassphrase);
         try {
             FileObject remoteFile = manager.resolveFile(source, sourceFso);
             if (remoteFile.getType() == FileType.FOLDER && remoteFile.getChildren().length == 0) {
@@ -104,7 +110,8 @@ public class FileDelete extends AbstractConnector implements Connector {
      * @return                      Return the status
      */
     private boolean deleteFile(String source, FileSystemOptions sourceFso, boolean includeSubDirectories,
-                               StandardFileSystemManager manager, MessageContext messageContext) {
+                               StandardFileSystemManager manager, MessageContext messageContext, String sftpIdentities,
+                               String sftpIdentityPassphrase) {
         boolean resultStatus = false;
         try {
             // Create remote object
@@ -128,8 +135,10 @@ public class FileDelete extends AbstractConnector implements Connector {
                             }
                         } else if (child.getType() == FileType.FOLDER && includeSubDirectories) {
                             String newSource = source + File.separator + child.getName().getBaseName();
-                            sourceFso = FileConnectorUtils.getFso(messageContext, newSource, manager);
-                            deleteFile(newSource, sourceFso, includeSubDirectories, manager, messageContext);
+                            sourceFso = FileConnectorUtils.getFso(messageContext, newSource, manager, sftpIdentities,
+                                    sftpIdentityPassphrase);
+                            deleteFile(newSource, sourceFso, includeSubDirectories, manager, messageContext,
+                                    sftpIdentities, sftpIdentityPassphrase);
                         }
                     }
                     if (remoteFile.getChildren().length == 0) {

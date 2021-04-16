@@ -88,7 +88,12 @@ public class FileCreate extends AbstractConnector implements Connector {
             OutputStream out = null;
             manager = FileConnectorUtils.getManager();
             if (manager != null) {
-                FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, source, manager);
+                String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                        FileConstants.SFTP_IDENTITIES);
+                String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                        FileConstants.SFTP_IDENTITY_PASSPHRASE);
+                FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, source, manager, sftpIdentities,
+                        sftpIdentityPassphrase);
                 FileObject sourceFile = manager.resolveFile(source, fso);
                 try {
                     if (FileConnectorUtils.isFolder(sourceFile)) {

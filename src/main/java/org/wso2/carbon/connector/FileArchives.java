@@ -71,8 +71,18 @@ public class FileArchives extends AbstractConnector implements Connector {
     private boolean fileCompress(MessageContext messageContext, String source, String destination,
                                  boolean includeSubDirectories) {
         StandardFileSystemManager manager = FileConnectorUtils.getManager();
-        FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager);
-        FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+        String sourceSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                FileConstants.SOURCE_SFTP_IDENTITIES);
+        String sourceSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                FileConstants.SOURCE_SFTP_IDENTITY_PASSPHRASE);
+        String targetSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                FileConstants.TARGET_SFTP_IDENTITIES);
+        String targetSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                FileConstants.TARGET_SFTP_IDENTITY_PASSPHRASE);
+        FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager, sourceSftpIdentities,
+                sourceSftpIdentityPassphrase);
+        FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                targetSftpIdentities, targetSftpIdentityPassphrase);
 
         String inputContent = (String) ConnectorUtils.lookupTemplateParamater(messageContext, FileConstants.CONTENT);
         String fileName = (String) ConnectorUtils.lookupTemplateParamater(messageContext, FileConstants.FILE_NAME);

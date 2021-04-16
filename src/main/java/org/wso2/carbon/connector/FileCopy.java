@@ -114,13 +114,25 @@ public class FileCopy extends AbstractConnector implements Connector {
         StandardFileSystemManager manager = null;
         try {
             manager = FileConnectorUtils.getManager();
-            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager);
-            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+            String sourceSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITIES);
+            String sourceSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITY_PASSPHRASE);
+            String targetSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITIES);
+            String targetSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager,
+                    sourceSftpIdentities, sourceSftpIdentityPassphrase);
+            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                    targetSftpIdentities, targetSftpIdentityPassphrase);
             FileObject souFile = manager.resolveFile(source, sourceFso);
             if (StringUtils.isNotEmpty(filePattern)) {
                 if (includeParentDirectory) {
-                    destination = createParentDirectory(souFile, destination, manager, messageContext);
-                    destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+                    destination = createParentDirectory(souFile, destination, manager, messageContext,
+                            targetSftpIdentities, targetSftpIdentityPassphrase);
+                    destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                            targetSftpIdentities, targetSftpIdentityPassphrase);
                 }
                 FileObject[] children = souFile.getChildren();
                 for (FileObject child : children) {
@@ -153,8 +165,10 @@ public class FileCopy extends AbstractConnector implements Connector {
             } else {
                 if (souFile.exists()) {
                     if (includeParentDirectory) {
-                        destination = createParentDirectory(souFile, destination, manager, messageContext);
-                        destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+                        destination = createParentDirectory(souFile, destination, manager, messageContext,
+                                targetSftpIdentities, targetSftpIdentityPassphrase);
+                        destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                                targetSftpIdentities, targetSftpIdentityPassphrase);
                     }
                     if (souFile.getType() == FileType.FILE) {
                         try {
@@ -247,9 +261,11 @@ public class FileCopy extends AbstractConnector implements Connector {
      * @return                The path of new destination
      */
     private String createParentDirectory(FileObject souFile, String destination,
-                                                 StandardFileSystemManager manager, MessageContext messageContext) {
+                                                 StandardFileSystemManager manager, MessageContext messageContext,
+                                         String sftpIdentities, String sftpIdentityPassphrase) {
         try {
-            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                    sftpIdentities, sftpIdentityPassphrase);
             destination += File.separator + souFile.getName().getBaseName();
             FileObject destFile = manager.resolveFile(destination, destinationFso);
             if (!destFile.exists()) {

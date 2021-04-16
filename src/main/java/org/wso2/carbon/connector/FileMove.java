@@ -109,20 +109,33 @@ public class FileMove extends AbstractConnector implements Connector {
         StandardFileSystemManager manager = null;
         try {
             manager = FileConnectorUtils.getManager();
-            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager);
+            String sourceSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITIES);
+            String sourceSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITY_PASSPHRASE);
+            String targetSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITIES);
+            String targetSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager,
+                    sourceSftpIdentities, sourceSftpIdentityPassphrase);
             // Create remote object
             FileObject remoteFile = manager.resolveFile(source, sourceFso);
             if (remoteFile.exists()) {
-                FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+                FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                        targetSftpIdentities, targetSftpIdentityPassphrase);
                 if (includeParentDirectory) {
-                    destination = createParentDirectory(remoteFile, destination, manager, messageContext);
-                    destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+                    destination = createParentDirectory(remoteFile, destination, manager, messageContext,
+                            targetSftpIdentities, targetSftpIdentityPassphrase);
+                    destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                            targetSftpIdentities, targetSftpIdentityPassphrase);
                 }
                 if (remoteFile.getType() == FileType.FILE) {
                     fileMove(destination, destinationFso, remoteFile, manager);
                 } else if (remoteFile.getType() == FileType.FOLDER) {
-                    folderMove(source, sourceFso, destination, destinationFso, filePattern, includeParentDirectory,
-                            includeSubDirectories, messageContext, manager);
+                    folderMove(source, sourceFso, sourceSftpIdentities, sourceSftpIdentityPassphrase, destination,
+                            destinationFso, targetSftpIdentities, targetSftpIdentityPassphrase, filePattern,
+                            includeParentDirectory, includeSubDirectories, messageContext, manager);
                     if (remoteFile.getChildren().length == 0 && includeParentDirectory) {
                         remoteFile.delete(Selectors.SELECT_ALL);
                     }
@@ -180,10 +193,11 @@ public class FileMove extends AbstractConnector implements Connector {
      * @param manager                Standard file system manager
      * @throws IOException
      */
-    private void folderMove(String source, FileSystemOptions sourceFso, String destination,
-                            FileSystemOptions destinationFso, String filePattern, boolean includeParentDirectory,
-                            boolean includeSubDirectories, MessageContext messageContext,
-                            StandardFileSystemManager manager) throws IOException {
+    private void folderMove(String source, FileSystemOptions sourceFso, String sourceSftpIdentities,
+                            String sourceSftpIdentityPassphrase, String destination, FileSystemOptions destinationFso,
+                            String targetSftpIdentities, String targetSftpIdentityPassphrase, String filePattern,
+                            boolean includeParentDirectory, boolean includeSubDirectories,
+                            MessageContext messageContext, StandardFileSystemManager manager) throws IOException {
 
         FileObject remoteFile = manager.resolveFile(source, sourceFso);
         FileObject destinationFile = manager.resolveFile(destination, destinationFso);
@@ -202,15 +216,18 @@ public class FileMove extends AbstractConnector implements Connector {
                 }
             } else if (child.getType() == FileType.FOLDER && includeSubDirectories) {
                 source += File.separator + child.getName().getBaseName();
-                sourceFso = FileConnectorUtils.getFso(messageContext, source, manager);
+                sourceFso = FileConnectorUtils.getFso(messageContext, source, manager, sourceSftpIdentities,
+                        sourceSftpIdentityPassphrase);
 
                 String newDestination = destination;
                 if (includeParentDirectory) {
                     newDestination += File.separator + child.getName().getBaseName();
-                    destinationFso = FileConnectorUtils.getFso(messageContext, newDestination, manager);
+                    destinationFso = FileConnectorUtils.getFso(messageContext, newDestination, manager,
+                            targetSftpIdentities, targetSftpIdentityPassphrase);
                 }
-                folderMove(source, sourceFso, newDestination, destinationFso, filePattern, includeParentDirectory,
-                        includeSubDirectories, messageContext, manager);
+                folderMove(source, sourceFso, sourceSftpIdentities, sourceSftpIdentityPassphrase, newDestination,
+                        destinationFso, targetSftpIdentities, targetSftpIdentityPassphrase, filePattern,
+                        includeParentDirectory, includeSubDirectories, messageContext, manager);
                 FileObject sourceFile = manager.resolveFile(source, sourceFso);
                 if (sourceFile.getChildren().length == 0 && includeParentDirectory) {
                     sourceFile.delete(Selectors.SELECT_ALL);
@@ -254,9 +271,11 @@ public class FileMove extends AbstractConnector implements Connector {
      * @return                The path of new destination
      */
     private String createParentDirectory(FileObject souFile, String destination,
-                                         StandardFileSystemManager manager, MessageContext messageContext) {
+                                         StandardFileSystemManager manager, MessageContext messageContext,
+                                         String sftpIdentities, String sftpIdentityPassphrase) {
         try {
-            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                    sftpIdentities, sftpIdentityPassphrase);
             destination += File.separator + souFile.getName().getBaseName();
             FileObject destFile = manager.resolveFile(destination, destinationFso);
             if (!destFile.exists()) {

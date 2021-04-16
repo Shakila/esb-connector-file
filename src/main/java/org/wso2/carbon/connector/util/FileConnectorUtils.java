@@ -109,7 +109,8 @@ public class FileConnectorUtils {
         return fsm;
     }
 
-    public static FileSystemOptions getFso(MessageContext messageContext, String fileUrl, FileSystemManager fsManager) {
+    public static FileSystemOptions getFso(MessageContext messageContext, String fileUrl, FileSystemManager fsManager,
+                                           String sftpIdentities, String sftpIdentityPassphrase) {
 
         String setTimeout = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
                 FileConstants.SET_TIME_OUT);
@@ -121,10 +122,6 @@ public class FileConnectorUtils {
                 (messageContext, FileConstants.SET_STRICT_HOST_KEY_CHECKING);
         String setUserDirIsRoot = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
                 FileConstants.SET_USER_DIRISROOT);
-        String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
-                FileConstants.SFTP_IDENTITIES);
-        String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
-                FileConstants.SFTP_IDENTITY_PASSPHRASE);
 
         if (log.isDebugEnabled()) {
             log.debug("File init starts with " + setTimeout + "," + setPassiveMode + "," +

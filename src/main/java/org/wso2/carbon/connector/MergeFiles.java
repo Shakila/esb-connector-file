@@ -63,7 +63,6 @@ public class MergeFiles extends AbstractConnector implements Connector {
      * @param source Location of the source file.
      * @param filePattern Pattern of the files to process.
      * @param destination   Location of the destination to write the merged file.
-     * @param options Init configuration options.
      * @param messageContext    Message context.
      * @return Status true/false.
      */
@@ -78,8 +77,18 @@ public class MergeFiles extends AbstractConnector implements Connector {
         byte[] fileBytes;
         try {
             manager = FileConnectorUtils.getManager();
-            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager);
-            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+            String sourceSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITIES);
+            String sourceSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITY_PASSPHRASE);
+            String targetSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITIES);
+            String targetSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, source, manager,
+                    sourceSftpIdentities, sourceSftpIdentityPassphrase);
+            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                    targetSftpIdentities, targetSftpIdentityPassphrase);
 
             sourceFileObj = manager.resolveFile(source, sourceFso);
             if (!sourceFileObj.exists()) {

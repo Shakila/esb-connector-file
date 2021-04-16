@@ -53,7 +53,12 @@ public class FileRead extends AbstractConnector implements Connector {
         try {
             manager = FileConnectorUtils.getManager();
             boolean fileWithGivenPatternExists = true;
-            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, fileLocation, manager);
+            String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITIES);
+            String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, fileLocation, manager, sftpIdentities,
+                    sftpIdentityPassphrase);
             fileObj = manager.resolveFile(fileLocation, fso);
             if (fileObj.exists()) {
                 if (fileObj.getType() == FileType.FOLDER) {

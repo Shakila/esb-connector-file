@@ -92,8 +92,18 @@ public class SplitFile extends AbstractConnector implements Connector {
         FileObject sourceFileObj = null;
         try {
             manager = FileConnectorUtils.getManager();
-            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, fileLocation, manager);
-            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager);
+            String sourceSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITIES);
+            String sourceSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SOURCE_SFTP_IDENTITY_PASSPHRASE);
+            String targetSftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITIES);
+            String targetSftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.TARGET_SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions sourceFso = FileConnectorUtils.getFso(messageContext, fileLocation, manager,
+                    sourceSftpIdentities, sourceSftpIdentityPassphrase);
+            FileSystemOptions destinationFso = FileConnectorUtils.getFso(messageContext, destination, manager,
+                    targetSftpIdentities, targetSftpIdentityPassphrase);
             sourceFileObj = manager.resolveFile(fileLocation, sourceFso);
             if (!sourceFileObj.exists() || sourceFileObj.getType() != FileType.FILE) {
                 handleException("File does not exists, or source is not a file in the location: " + fileLocation,

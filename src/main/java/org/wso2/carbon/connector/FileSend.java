@@ -124,7 +124,12 @@ public class FileSend extends AbstractConnector implements Connector {
             manager = FileConnectorUtils.getManager();
             org.apache.axis2.context.MessageContext axis2MessageContext = ((Axis2MessageContext) messageContext).
                     getAxis2MessageContext();
-            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, address, manager);
+            String sftpIdentities = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITIES);
+            String sftpIdentityPassphrase = (String) ConnectorUtils.lookupTemplateParamater(messageContext,
+                    FileConstants.SFTP_IDENTITY_PASSPHRASE);
+            FileSystemOptions fso = FileConnectorUtils.getFso(messageContext, address, manager, sftpIdentities,
+                    sftpIdentityPassphrase);
             fileObj = manager.resolveFile(address, fso);
             if (fileObj.getType() == FileType.FOLDER) {
                 address = address.concat(FileConstants.DEFAULT_RESPONSE_FILE);
